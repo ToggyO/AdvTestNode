@@ -1,0 +1,29 @@
+{
+  "name": "advtestnode",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "description": "TestBlog",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "(https://github.com/ToggyO/AdvTestNode.git)"
+  },
+  "author": "Toggy-O",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^5.15.3",
+    "eslint-plugin-node": "^8.0.1",
+    "nodemon": "^1.18.10"
+  },
+  "dependencies": {
+    "ejs": "^2.6.1",
+    "express": "^4.16.4"
+  }
+}
