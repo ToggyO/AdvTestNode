@@ -1,15 +1,21 @@
 const express = require('express');
 const ejs = require('ejs');
-const router = require('./routes/routes');
+const bodyParser = require('body-parser');
+const path = require('path');
+const router = require('./root/routes');
 
-const port = process.env.PORT || 3000;
+
 
 const app = express();
+
 app.set("view engine", "ejs");
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(
+  '/javascript', express.static(path.join(__dirname, 'node_modules', 'jquery', 'dist'))
+);
 app.use(router);
 
 
 
-app.listen(port, () => {
-  console.log(`Server has been started on port ${port}`);
-});
+module.exports = app;

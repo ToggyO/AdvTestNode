@@ -5,11 +5,11 @@
     "node": ">=6.0.0"
   },
   "description": "TestBlog",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "start": "cross-env port = 3001 node index.js",
+    "dev": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -18,12 +18,16 @@
   "author": "Toggy-O",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^5.2.0",
     "eslint": "^5.15.3",
     "eslint-plugin-node": "^8.0.1",
     "nodemon": "^1.18.10"
   },
   "dependencies": {
+    "body-parser": "^1.18.3",
     "ejs": "^2.6.1",
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "jquery": "^3.3.1",
+    "mongoose": "^5.4.19"
   }
 }
