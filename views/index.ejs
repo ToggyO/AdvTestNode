@@ -1,15 +1,29 @@
 <% include layout/header.ejs %>
 
-  <a href = "/create">Create post</a>
-  <ul>
-    <% posts.forEach(function(post) { %>
-      <li>
-        <%= post.title %>
-        <br>
-        <%= post.body %>
-      </li>
-      <br>
-    <% }); %>
-  </ul>
+<div class="main">
+  <div class="container">
+    <div class="content">
+      <div class="post">
+        <div class="top">
+          <h2>Заголовок поста</h2>
+        </div>
+        <div class="body">
+          <p>«Кин-дза-дза́!» — полнометражный двухсерийный трагикомедийный художественный фильм
+             в жанре антиутопии, снятый на киностудии «Мосфильм»</p>
+        </div>
+        <div class="bottom">
+          <div class="author">
+            Автор:
+            <a href="/">Гедеван</a>
+          </div>
+          <a href="/">Комментарии</a>
+        </div>
+      </div>
+    </div>
+    
+    <% include layout/sidebar.ejs %>
 
-  <% include layout/footer.ejs %>
+  </div>
+</div>
+
+<% include layout/footer.ejs %>
