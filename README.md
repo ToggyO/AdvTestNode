@@ -1,2 +1,1 @@
 # AdvTestNode
-Blog

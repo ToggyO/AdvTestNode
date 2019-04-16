@@ -8,7 +8,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cross-env port = 3001 node app.js",
+    "start": "cross-env node app.js",
     "dev": "concurrently \"gulp\" \"nodemon app.js\"",
     "gulp": "gulp"
   },
@@ -32,14 +32,24 @@
   },
   "dependencies": {
     "babel-eslint": "^10.0.1",
+    "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.18.3",
     "concurrently": "^4.1.0",
+    "connect-mongo": "^2.0.3",
+    "dotenv": "^7.0.0",
     "ejs": "^2.6.1",
+    "ejs-lint": "^0.3.0",
     "express": "^4.16.4",
+    "express-session": "^1.15.6",
+    "faker": "^4.1.0",
     "gulp-concat": "^2.6.1",
     "gulp-uglifyjs": "^0.6.2",
     "jquery": "^3.3.1",
+    "medium-editor": "^5.23.3",
     "mongoose": "^5.4.19",
-    "static-asset": "^0.6.0"
+    "mongoose-url-slugs": "^1.0.2",
+    "static-asset": "^0.6.0",
+    "transliter": "^2.2.1",
+    "turndown": "^5.0.3"
   }
 }
