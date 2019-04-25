@@ -56,22 +56,9 @@ app.use(
 );
 
 //routes
-app.get('/', (req, res) => {
-  //фиксируем login и id сессии в переменныя для передачи в шаблон
-    const id = req.session.userId;
-    const login = req.session.userLogin;
-
-    res.render('index', {
-      user : {
-        id,
-        login
-      }
-    });
-});
-
+app.use('/', routes.archive);
 app.use('/api/auth', routes.auth);
 app.use('/post', routes.post);
-app.use('/archive', routes.archive);
 
 //catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -79,7 +66,6 @@ app.use((req, res, next) => {
   err.status = 404;
   next(err);
 });
-
 
 app.use((error, req, res) => {
   res.status(error.status || 500);
