@@ -9,7 +9,7 @@ router.get('/add', (req, res) => {
   const userId = req.session.userId;
   const userLogin = req.session.userLogin;
 
-  if (!userId || !userLogin) {
+  if (!userId || !userLogin) { //если user не авторизован, то будет редирект на главную
     res.redirect('/');
   } else {
     res.render('post/add', {

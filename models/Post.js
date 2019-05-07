@@ -15,12 +15,30 @@ const schema = new Schema({
   owner: {
     type: Schema.Types.ObjectId,
     ref: 'User'
+  },
+  commentCount: {
+    type: Number,
+    default: 0
   }
 },
   {
     timestamps: true //добавляет время созданияи время обновления объекта в БД
   }
 );
+
+
+//метод для подсчета количества комментариев у поста
+//this.findByIdAndUpdate обращение к схеме и спользование метода для инкрементирования поля commentCount
+schema.statics = {
+  incCommentCount(postId) {
+    return this.findByIdAndUpdate(
+      postId,
+      //Станадартная функция MongoDB для инкрементирования (см. документацию)
+      { $inc: {commentCount: 1} },
+      { new: true }
+    );
+  }
+}
 
 //mongoose-url-slugs преобразовывает строку заголовка поста
 //в url для вставки в роут на сайте.

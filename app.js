@@ -25,7 +25,7 @@ db.once('open', () => {
   const info = mongoose.connections[0];
   // console.log(mongoose.connections[0]);
   console.log(`Connected to ${info.host}:${info.port}/${info.name}`);
-  //require('./mocks')(); //создание рандомных постов
+  // require('./mocks')(); //создание рандомных постов
 });
 mongoose.connect(cfg.mongoURI, { useNewUrlParser: true });
 //
@@ -59,6 +59,7 @@ app.use(
 app.use('/', routes.archive);
 app.use('/api/auth', routes.auth);
 app.use('/post', routes.post);
+app.use('/comment', routes.comment);
 
 //catch 404 and forward to error handler
 app.use((req, res, next) => {
