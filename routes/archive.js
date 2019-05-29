@@ -15,7 +15,9 @@ async function posts(req, res) {
   const page = req.params.page || 1; //если page не задана, то по умолчанию задется в строке браузера 1
 
   try {
-    const posts = await models.Post.find({})
+    const posts = await models.Post.find({
+      status: 'published' //поле из модели Post, показывающее, записан ли пост в базе ('draft', если пост "Черновик")
+    })
       .skip(perPage * page - perPage)  //ЗАГУГЛИТЬ ПРО ПАГИНАЦИЮ
       .limit(perPage)
       .populate('owner') //присвоение полю owner модели Post полей из модели User
@@ -84,7 +86,8 @@ router.get('/posts/:post', async (req, res, next) => {
 
     try {
       const post = await models.Post.findOne({
-        url
+        url,
+        status: 'published'
       });
 
       if (!post) {

@@ -1,12 +1,5 @@
 /* eslint-disable no-undef */
 $(function() {
-  // eslint-disable-next-line
-  let editor = new MediumEditor('#post-body', {
-    placeholder : {
-      text: '',
-      hideOnClick: true
-    }
-  });
 
   //remove error p.error
   function removeErrors() {
@@ -20,15 +13,24 @@ $(function() {
     });
 
   //publish
-  $('.publish-button').on('click', function(e) {
+  $('.publish-button, .save-button').on('click', function(e) {
     e.preventDefault();
     removeErrors();
     // $('p.error').remove();
     // $('input').removeClass('error');
 
+    //Определяем нужный класс из составного класса путем разеделни строки составного касса и выбираем первый элемент полученного массива
+    const isDraft =
+      $(this)
+      .attr('class')
+      .split(' ')[0] === 'save-button';
+
     var data = {
       title: $('#post-title').val(), //val() берет значение из input
-      body: $('#post-body').html() //html() берет значение из div
+      body: $('#post-body').val(), //html() берет значение из div
+      isDraft: isDraft,
+      postId: $('#post-id').val(),
+
     };
 
     $.ajax({
@@ -49,9 +51,36 @@ $(function() {
          });
        }
      } else {
-        $(location).attr('href', '/');
-     //   //$('.register h2').after('<p class="success">Отлично!</p>');
+      
+     // $('.register h2').after('<p class="success">Отлично!</p>');
+       if (isDraft) {
+         $(location).attr('href', '/post/edit/' + data.post.id);
+       } else {
+         $(location).attr('href', '/posts/' + data.post.url);
+       }
      }
+    });
+  });
+
+  //upload
+  $('#fileinfo').on('submit', function(e) {
+    e.preventDefault();
+
+    // FormData класс для работы с формами в браузере
+    let formData = new FormData(this);
+
+    $.ajax({
+      type: 'POST',
+      url: '/upload/image',
+      data: formData,
+      processData: false, //форма не будет отправлять "лишние" данные
+      contentType: false, // не будем валидировать форму
+      success: function (r) {
+        console.log(r);
+      },
+      error: function (e) {
+        console.log(e);
+      }
     });
   });
 });

@@ -1,8 +1,42 @@
 const express = require('express');
 const router = express.Router();
-const TurndownService = require('turndown'); //преобразование html-тегов в markdown-разметку
+// const TurndownService = require('turndown'); //преобразование html-тегов в markdown-разметку UPD: исключен из проекта
 
 const models = require('../models');
+
+// GET for edit
+router.get('/edit/:id', async (req, res, next) => {
+  const userId = req.session.userId;
+  const userLogin = req.session.userLogin;
+  const id = req.params.id.trim().replace(/ +(?= )/g, '');
+
+  if (!userId || !userLogin) {
+    res.redirect('/');
+  } else {
+    try {
+      const post = await models.Post.findById(id);
+
+      if (!post) {
+        const err = new Error('Not found');
+        err.status = 404;
+        next(err);
+      }
+
+      res.render('post/edit', {
+        post,
+        user: {
+          id: userId,
+          login: userLogin
+        }
+      });
+
+    } catch (error) {
+      console.log(error);
+    }
+
+
+  }
+});
 
 // GET for add
 router.get('/add', (req, res) => {
@@ -12,7 +46,7 @@ router.get('/add', (req, res) => {
   if (!userId || !userLogin) { //если user не авторизован, то будет редирект на главную
     res.redirect('/');
   } else {
-    res.render('post/add', {
+    res.render('post/edit', {
       user: {
         id: userId,
         login: userLogin
@@ -22,7 +56,7 @@ router.get('/add', (req, res) => {
 });
 
 //POST is add
-router.post('/add', (req, res) => {
+router.post('/add', async (req, res) => {
   const userId = req.session.userId;
   const userLogin = req.session.userLogin;
 
@@ -30,9 +64,12 @@ router.post('/add', (req, res) => {
    res.redirect('/');
  } else {
    const title = req.body.title.trim().replace(/ +(?= )/g, ''); //trim() убирает пробелы в начале и в конце. replace(руглярка) убирает двойные пробелы
-   const body = req.body.body;
+   const body = req.body.body.trim();
    //преобразовает html-теги из полей поста в markdown-разметку
-   const turndownService = new TurndownService();
+   const isDraft = !!req.body.isDraft; // !! преобразование в булевский тип
+   const postId = req.body.postId;
+      // const turndownService = new TurndownService();
+
 
    if (!title || !body) {
 
@@ -59,26 +96,54 @@ router.post('/add', (req, res) => {
        fields: ['body']
      });
    } else {
-     models.Post.create({
-       title,
-       body: turndownService.turndown(body), //преобразовает html-теги из полей поста в markdown-разметку
-       owner: userId
-     }).then(post => {
-       console.log(post);
-       res.json({
-         ok: true
-       });
-     }).catch(err => {
-       console.log(err);
+     try {
+       if (postId) {
+         const post = await models.Post.findOneAndUpdate({
+           _id: postId,
+           owner: userId
+         },
+         {
+           title,
+           body,
+           owner: userId,
+           status: isDraft ? 'draft' : 'published'
+         },
+         {
+           new: true
+         });
+
+         if (!post) {
+           res.json({
+             ok: false,
+             error: "Пост не твой!"
+           });
+         } else {
+           res.json({
+             ok: true,
+             post
+           });
+         }
+       } else {
+         const post = await models.Post.create({
+           title,
+           body,
+           owner: userId
+         })
+
+         res.json({
+           ok: true,
+           post
+         });
+       }
+     } catch (error) {
        res.json({
          ok: false
        });
-     })
+     }
    }
  }
-
-
 });
+
 
 
 module.exports = router;
