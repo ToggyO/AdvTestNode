@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const moment = require('moment');
+const moment = require('moment'); // модуль для работы со временем (позволяет корректно отображать дату в комментариях)
+const showdown  = require('showdown'); // преобразование markdown-разметки в html-код
 
 moment.locale('ru');
 
@@ -15,13 +16,38 @@ async function posts(req, res) {
   const page = req.params.page || 1; //если page не задана, то по умолчанию задется в строке браузера 1
 
   try {
-    const posts = await models.Post.find({
+    let posts = await models.Post.find({
       status: 'published' //поле из модели Post, показывающее, записан ли пост в базе ('draft', если пост "Черновик")
     })
       .skip(perPage * page - perPage)  //ЗАГУГЛИТЬ ПРО ПАГИНАЦИЮ
       .limit(perPage)
       .populate('owner') //присвоение полю owner модели Post полей из модели User
+      .populate('uploads') //присвоение полю uploads модели Post полей из модели Upload, чтобы в посте, вместо айдишников картинок из БД, выводились сами картинки (объекты)
       .sort({ createdAt: -1 }) //вывод постов По дате (сначала самые новые)
+
+      const converter = new showdown.Converter();
+      // с помощью map вносим изменения в массив постов
+      // и в каждом посте заменяем поле body с помощью Object.assign
+      // на конвертированное поле body
+      // assign смотрит на два объекта и заменяет одинаковые
+      // поля на конвертированные
+      posts = posts.map(post => {
+        // записываем в переменную инфу из поля body поста
+        let body = post.body;
+        // проходим циклом forEach по массиву uploads модели Post
+        // по всей длине массива (length)
+        // и через replace() заменяем id (upload.id) картинки из БД
+        // на путь картинки (тоже из БД) (upload.path)
+        if (post.uploads.length) {
+          post.uploads.forEach(upload => {
+            body = body.replace(`image${upload.id}`, `/${cfg.DESTINATION}${upload.path}`);
+          });
+        }
+
+        return Object.assign(post, {
+          body: converter.makeHtml(body)
+        });
+      });
 
       const count = await models.Post.countDocuments();
 
@@ -39,32 +65,6 @@ async function posts(req, res) {
   }
 }
 
-//   models.Post.find({})
-//   .skip(perPage * page - perPage)  //ЗАГУГЛИТЬ ПРО ПАГИНАЦИЮ
-//   .limit(perPage)
-//   .populate('owner') //присвоение полю owner модели Post полей из модели User
-//   .sort({ createdAt: -1 }) //вывод постов По дате (сначала самые новые)
-//   .then(posts => {
-//     models.Post.countDocuments()
-//     .then(count => {
-//       res.render('archive/index', {
-//         posts,
-//         current: page,
-//         pages: Math.ceil(count / perPage),
-//         user: {
-//           id: userId,
-//           login: userLogin
-//         }
-//       });
-//     })
-//     .catch(() => {
-//       throw new Error('Server Error');
-//     });
-//   })
-//   .catch(() => {
-//     throw new Error('Server Error');
-//   });
-// };
 
 //routes
 router.get('/', (req, res) => posts(req, res));
@@ -88,7 +88,7 @@ router.get('/posts/:post', async (req, res, next) => {
       const post = await models.Post.findOne({
         url,
         status: 'published'
-      });
+      }).populate('uploads');
 
       if (!post) {
         const err = new Error('Not found');
@@ -109,8 +109,21 @@ router.get('/posts/:post', async (req, res, next) => {
         //   }
         // }); //наполнение модели поста полем children из модели Comment
 
+        //
+        const converter = new showdown.Converter();
+
+        let body = post.body;
+        // описание см. выше
+        if (post.uploads.length) {
+          post.uploads.forEach(upload => {
+            body = body.replace(`image${upload.id}`, `/${cfg.DESTINATION}${upload.path}`);
+          });
+        }
+
         res.render('post/post', {
-          post,
+          post: Object.assign(post, {
+            body: converter.makeHtml(body)
+          }),
           comments,
           moment,
           user: {
@@ -122,26 +135,6 @@ router.get('/posts/:post', async (req, res, next) => {
     } catch (error) {
       throw new Error('Server Error');
     };
-
-
-    // models.Post.findOne({
-    //   url
-    // })
-    // .then(post => {
-    //   if (!post) {
-    //     const err = new Error('Not found');
-    //     err.status = 404;
-    //     next(err);
-    //   } else {
-    //     res.render('post/post', {
-    //       post,
-    //       user: {
-    //         id: userId,
-    //         login: userLogin
-    //       }
-    //     });
-    //   }
-    // })
   }
 });
 
@@ -159,15 +152,32 @@ router.get('/users/:login/:page*?', async (req, res) => { //page*? означе�
       login
     });
 
-    const posts = await models.Post.find({
+    let posts = await models.Post.find({
       owner: user.id
     })
     .skip(perPage * page - perPage)  //ЗАГУГЛИТЬ ПРО ПАГИНАЦИЮ
     .limit(perPage)
-    .sort({ createdAt: -1 }); //вывод постов По дате (сначала самые новые)
+    .sort({ createdAt: -1 }) //вывод постов По дате (сначала самые новые)
+    .populate('uploads');
 
     const count = await models.Post.countDocuments({
       owner: user.id
+    });
+
+    const converter = new showdown.Converter();
+    posts = posts.map(post => {
+
+      let body = post.body;
+
+      if (post.uploads.length) {
+        post.uploads.forEach(upload => {
+          body = body.replace(`image${upload.id}`, `/${cfg.DESTINATION}${upload.path}`);
+        });
+      }
+
+      return Object.assign(post, {
+        body: converter.makeHtml(body)
+      });
     });
 
     res.render('archive/user', {
@@ -184,40 +194,6 @@ router.get('/users/:login/:page*?', async (req, res) => { //page*? означе�
   } catch (error) {
     throw new Error('Server Error');
   };
-
-  // models.User.findOne({
-  //   login
-  // })
-  // .then(user => {
-  //   models.Post.find({
-  //     owner: user.id
-  //   })
-  //   .skip(perPage * page - perPage)  //ЗАГУГЛИТЬ ПРО ПАГИНАЦИЮ
-  //   .limit(perPage)
-  //   .sort({ createdAt: -1 }) //вывод постов По дате (сначала самые новые)
-  //   .then(posts => {
-  //     models.Post.countDocuments({
-  //       owner: user.id
-  //     }).then(count => {
-  //       res.render('archive/user', {
-  //         posts,
-  //         _user: user, //добавляем в поле _user объект user, чтобы использовать для вывода постов юзера через пагинацию
-  //         current: page,
-  //         pages: Math.ceil(count / perPage),
-  //         user: {
-  //           id: userId,
-  //           login: userLogin
-  //         }
-  //       });
-  //     })
-  //     .catch(() => {
-  //       throw new Error('Server Error');
-  //     })
-  //     .catch(() => {
-  //       throw new Error('Server Error');
-  //     });
-  //   });
-  // });
 });
 
 module.exports = router;

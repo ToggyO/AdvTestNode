@@ -1,35 +1,40 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 // const URLSlugs = require('mongoose-url-slugs');
-const tr = require('transliter');
+// const tr = require('transliter');
 
-const schema = new Schema({
-  title: {
-    type: String,
-    required: true
+const schema = new Schema(
+  {
+    title: {
+      type: String
+    },
+    body: {
+      type: String
+    },
+    url: {
+      type: String
+    },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    status: {
+      type: String,
+      enum: ['published', 'draft'],
+      required: true,
+      default: 'published'
+    },
+    commentCount: {
+      type: Number,
+      default: 0
+    },
+    uploads: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Upload'
+      }
+    ]
   },
-  body: {
-    type: String,
-    required: true
-  },
-  url: {
-    type: String
-  },
-  owner: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  status: {
-    type: String,
-    enum: ['published', 'draft'],
-    required: true,
-    default: 'published'
-  },
-  commentCount: {
-    type: Number,
-    default: 0
-  }
-},
   {
     timestamps: true //добавляет время созданияи время обновления объекта в БД
   }
@@ -49,11 +54,11 @@ schema.statics = {
   }
 }
 
-schema.pre('save', function(next) {
-  // Преобразует title поста в url. За уникальность url отвечает Date.now().toString(36). 36 это английский язык.
-  this.url = `${tr.slugify(this.title)}-${Date.now().toString(36)}`;
-  next();
-});
+// schema.pre('save', function(next) {
+//   // Преобразует title поста в url. За уникальность url отвечает Date.now().toString(36). 36 это английский язык.
+//   this.url = `${tr.slugify(this.title)}-${Date.now().toString(36)}`;
+//   next();
+// });
 
 //mongoose-url-slugs преобразовывает строку заголовка поста
 //в url для вставки в роут на сайте.

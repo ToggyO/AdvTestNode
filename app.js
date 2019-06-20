@@ -51,6 +51,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(staticAsset(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
+// Расшаривание статики uploads (картинок) с сервера
+// клиенту, чтобы через jquery вывести картинрку при создании поста
+app.use('/uploads', express.static(path.join(__dirname, cfg.DESTINATION)));
 app.use(
   '/javascript', express.static(path.join(__dirname, 'node_modules', 'jquery', 'dist'))
 );

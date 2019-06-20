@@ -164,11 +164,16 @@ $(function() {
   });
 
   //upload
-  $('#fileinfo').on('submit', function(e) {
-    e.preventDefault();
+  $('#file').on('change', function() {
+    // e.preventDefault();
 
     // FormData класс для работы с формами в браузере
-    let formData = new FormData(this);
+    // Берем данные с инпутов с параметром
+    //  name=postId и name=file и с помощью append
+    // а потом МАГИЯ!
+    let formData = new FormData();
+    formData.append('postId', $('#post-id').val());
+    formData.append('file', $('#file')[0].files[0]);
 
     $.ajax({
       type: 'POST',
@@ -176,14 +181,27 @@ $(function() {
       data: formData,
       processData: false, //форма не будет отправлять "лишние" данные
       contentType: false, // не будем валидировать форму
-      success: function (r) {
-        console.log(r);
+      success: function (data) {
+        console.log(data);
+        $('#fileinfo').prepend('<div class="img-container"><img src="/uploads' + data.filePath + '" alt="" /></div>'
+        );
       },
       error: function (e) {
         console.log(e);
       }
     });
   });
+
+  // inserting post (НЕ ОЧЕНЬ ПОНЯЛ, КАК ЭТО РАБОТАЕТ)
+  $('.img-container').on('click', function() {
+    let imageId = $(this).attr('id'); //берем атрибут id из .img-container
+    let txt = $('#post-body'); // записываем в переменную содержимое из #post-body
+    let caretPos = txt[0].selectionStart; // определяем положение курсора в #post-body
+    let textAreaTxt = txt.val(); // бля, я хз, для чего брать значение из #post-body
+    let txtToAdd = "![alt text](image" + imageId + ")"; // добавляем markdown разметку с оптсанием картинки в перемнную
+    txt.val(textAreaTxt.substring(0, caretPos) + txtToAdd + textAreaTxt.substring(caretPos)); // c помощью val(...) добавляем на метоположение курсора при клике на картинку маркдаун разметку
+  });
+
 });
 /* eslint-enable no-undef */
 

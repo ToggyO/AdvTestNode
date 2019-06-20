@@ -10,7 +10,11 @@
             <h2><%=post.title %></h2>
           </div>
           <div class="body">
-            <p><%=post.body %></p>
+
+              <!-- Если хочешь, чтобы на странице вместо html отобржалаись картинки, то заменяй '< %=' на  '< %-'  -->
+
+              <%-post.body %>
+
           </div>
           <div class="bottom">
             <div class="author">
